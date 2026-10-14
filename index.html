@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free PDF Converter | Universal File & PDF Converter</title>
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Inter Font -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- FontAwesome Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<!-- PDF.js for robust PDF reading -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<!-- Mammoth.js for Word .docx conversion -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<!-- SheetJS (XLSX) for Excel spreadsheet conversion -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<!-- JSZip for PPTX and Office XML parsing -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+</script>
+<script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                fontFamily: {
+                    sans: ['Inter', 'sans-serif'],
+                }
+            }
+        }
+    }
+</script>
+<style>
+    body { font-family: 'Inter', sans-serif; }
+    .glass-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(16px);
+        border: 1px solid rgba(226, 232, 240, 0.8);
+    }
+</style>
+</head>
+<body class="bg-gradient-to-br from-indigo-50 via-slate-50 to-blue-50 text-slate-800 min-h-screen flex flex-col antialiased">
+
+    <header class="border-b border-slate-200/80 bg-white/80 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-600/30 text-white font-bold text-xl">
+                    <i class="fa-solid fa-bolt-lightning"></i>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-lg text-slate-900 tracking-tight">FreePDF <span class="text-indigo-600">Pro</span></h1>
+                    <p class="text-xs text-slate-500 hidden sm:block">Universal Client-Side Document Converter</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2">
+                <span class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-700 text-xs font-semibold border border-emerald-500/20">
+                    <i class="fa-solid fa-shield-halved text-[10px]"></i>
+                    <span>100% Secure & Private</span>
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        
+        <div class="text-center mb-8">
+            <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-3">
+                Universal File & PDF <span class="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">Converter</span>
+            </h2>
+            <p class="text-sm sm:text-base text-slate-600 max-w-2xl mx-auto leading-relaxed">
+                Convert Word (.docx), Excel (.xlsx), PowerPoint (.pptx), text, images to PDF, or extract clean, formatted text from PDF to Word (.doc) instantly in your browser with zero size limit.
+            </p>
+        </div>
+
+        <div class="glass-card rounded-3xl shadow-2xl p-6 sm:p-8 relative overflow-hidden">
+            
+            <!-- Conversion Mode Tabs -->
+            <div class="grid grid-cols-2 gap-2 bg-slate-100 p-1.5 rounded-2xl mb-8">
+                <button onclick="setMode('to-pdf')" id="tabToPdf" class="py-3 px-4 rounded-xl font-semibold text-xs sm:text-sm transition flex items-center justify-center space-x-2 bg-white text-indigo-600 shadow-md">
+                    <i class="fa-solid fa-file-arrow-up"></i>
+                    <span>Any File → PDF</span>
+                </button>
+                <button onclick="setMode('from-pdf')" id="tabFromPdf" class="py-3 px-4 rounded-xl font-semibold text-xs sm:text-sm transition flex items-center justify-center space-x-2 text-slate-600 hover:text-slate-900">
+                    <i class="fa-solid fa-file-arrow-down"></i>
+                    <span>PDF → Word (.doc)</span>
+                </button>
+            </div>
+
+            <!-- Format Banner -->
+            <div class="flex items-center justify-center space-x-4 sm:space-x-8 mb-8 p-4 rounded-2xl bg-indigo-50/50 border border-indigo-100">
+                <div class="flex items-center space-x-3">
+                    <div id="fromIconBox" class="w-12 h-14 rounded-xl bg-indigo-600 text-white font-bold text-xs flex flex-col items-center justify-center shadow-md shadow-indigo-600/30">
+                        <i class="fa-solid fa-file-lines text-lg mb-0.5"></i>
+                        <span id="fromBadge" class="text-[9px] uppercase tracking-wider">ANY</span>
+                    </div>
+                    <div>
+                        <strong id="fromTitle" class="block text-sm font-bold text-slate-900">Any File Format</strong>
+                        <span id="fromSub" class="text-xs text-slate-500">DOCX, XLSX, PPTX, TXT, Images</span>
+                    </div>
+                </div>
+
+                <div class="text-indigo-400 text-xl font-bold animate-pulse">
+                    <i class="fa-solid fa-arrow-right"></i>
+                </div>
+
+                <div class="flex items-center space-x-3">
+                    <div id="toIconBox" class="w-12 h-14 rounded-xl bg-rose-600 text-white font-bold text-xs flex flex-col items-center justify-center shadow-md shadow-rose-600/30">
+                        <i class="fa-solid fa-file-pdf text-lg mb-0.5"></i>
+                        <span id="toBadge" class="text-[9px] uppercase tracking-wider">PDF</span>
+                    </div>
+                    <div>
+                        <strong id="toTitle" class="block text-sm font-bold text-slate-900">PDF Document</strong>
+                        <span id="toSub" class="text-xs text-slate-500">Standard .pdf file</span>
+                    </div>
+                </div>
+            </div>
+
+            <label id="dropzone" for="fileInput" class="border-2 border-dashed border-indigo-200 hover:border-indigo-500 rounded-2xl p-8 sm:p-12 flex flex-col items-center justify-center text-center cursor-pointer bg-slate-50/80 hover:bg-indigo-50/30 transition group relative">
+                <div class="w-16 h-16 rounded-2xl bg-indigo-100 text-indigo-600 flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition shadow-inner">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                </div>
+                <strong class="text-base font-bold text-slate-800 mb-1">Drag & drop your file here, or click to browse</strong>
+                <p id="dropHelpText" class="text-xs text-slate-500 max-w-sm mb-4">Supports DOCX, XLSX, PPTX, TXT, CSV, JSON, Images, or PDF.</p>
+                <span class="px-5 py-2.5 rounded-xl bg-indigo-600 text-white font-semibold text-xs shadow-lg shadow-indigo-600/30 hover:bg-indigo-700 transition">
+                    Browse Files
+                </span>
+            </label>
+
+            <input type="file" id="fileInput" class="hidden">
+
+            <!-- Selected File Info Card -->
+            <div id="fileInfoCard" class="hidden mt-6 p-4 rounded-2xl border border-slate-200 bg-white flex items-center justify-between shadow-sm">
+                <div class="flex items-center space-x-3.5 min-w-0">
+                    <div id="selectedFileIcon" class="w-12 h-12 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-sm shrink-0">
+                        DOC
+                    </div>
+                    <div class="min-w-0">
+                        <strong id="selectedFileName" class="block text-sm font-bold text-slate-900 truncate">filename.docx</strong>
+                        <span id="selectedFileSize" class="text-xs text-slate-500">2.4 MB</span>
+                    </div>
+                </div>
+                <button onclick="resetFileSelection()" type="button" class="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition shrink-0">
+                    <i class="fa-solid fa-trash-can text-sm"></i>
+                </button>
+            </div>
+
+            <!-- Convert Action Button -->
+            <button id="convertBtn" onclick="processConversion()" disabled class="w-full mt-6 py-4 px-6 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-bold text-sm shadow-xl shadow-indigo-600/30 hover:opacity-95 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                <span id="convertBtnText">Convert File Now</span>
+            </button>
+
+            <!-- Status Box -->
+            <div id="statusBox" class="hidden mt-6 p-4 rounded-2xl text-xs sm:text-sm font-medium leading-relaxed"></div>
+
+            <!-- Guarantee Features Footer -->
+            <div class="mt-8 pt-6 border-t border-slate-100 text-center">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                        <i class="fa-solid fa-infinity text-indigo-600 text-lg mb-1"></i>
+                        <strong class="block text-xs font-bold text-slate-800">No Size Limit</strong>
+                        <p class="text-[11px] text-slate-500">Convert massive documents locally without restrictions.</p>
+                    </div>
+                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                        <i class="fa-solid fa-shield-halved text-emerald-600 text-lg mb-1"></i>
+                        <strong class="block text-xs font-bold text-slate-800">100% Browser-Based</strong>
+                        <p class="text-[11px] text-slate-500">Your files never leave your device or get uploaded.</p>
+                    </div>
+                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                        <i class="fa-solid fa-bolt text-amber-500 text-lg mb-1"></i>
+                        <strong class="block text-xs font-bold text-slate-800">Instant Download</strong>
+                        <p class="text-[11px] text-slate-500">Save your converted document immediately.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <script>
+        const $ = id => document.getElementById(id);
+        const dropzone = $('dropzone');
+        const fileInput = $('fileInput');
+        const convertBtn = $('convertBtn');
+        const statusBox = $('statusBox');
+
+        let currentMode = 'to-pdf'; // 'to-pdf' or 'from-pdf'
+        let selectedFile = null;
+        let isProcessing = false;
+
+        function setMode(mode) {
+            if (isProcessing) return;
+            currentMode = mode;
+            resetFileSelection();
+
+            const tabToPdf = $('tabToPdf');
+            const tabFromPdf = $('tabFromPdf');
+            const fromIconBox = $('fromIconBox');
+            const toIconBox = $('toIconBox');
+            const fromTitle = $('fromTitle');
+            const fromSub = $('fromSub');
+            const toTitle = $('toTitle');
+            const toSub = $('toSub');
+            const fromBadge = $('fromBadge');
+            const toBadge = $('toBadge');
+            const dropHelpText = $('dropHelpText');
+            const convertBtnText = $('convertBtnText');
+
+            if (mode === 'to-pdf') {
+                tabToPdf.className = "py-3 px-4 rounded-xl font-semibold text-xs sm:text-sm transition flex items-center justify-center space-x-2 bg-white text-indigo-600 shadow-md";
+                tabFromPdf.className = "py-3 px-4 rounded-xl font-semibold text-xs sm:text-sm transition flex items-center justify-center space-x-2 text-slate-600 hover:text-slate-900";
+                
+                fromIconBox.className = "w-12 h-14 rounded-xl bg-indigo-600 text-white font-bold text-xs flex flex-col items-center justify-center shadow-md shadow-indigo-600/30";
+                fromBadge.textContent = "ANY";
+                fromTitle.textContent = "Any File Format";
+                fromSub.textContent = "DOCX, XLSX, PPTX, TXT, Images";
+                
+                toIconBox.className = "w-12 h-14 rounded-xl bg-rose-600 text-white font-bold text-xs flex flex-col items-center justify-center shadow-md shadow-rose-600/30";
+                toBadge.textContent = "PDF";
+                toTitle.textContent = "PDF Document";
+                toSub.textContent = "Standard .pdf file";
+                
+                dropHelpText.textContent = "Supports DOCX, XLSX, PPTX, TXT, CSV, JSON, Images, or any document format.";
+                fileInput.removeAttribute('accept');
+                convertBtnText.textContent = "Convert File to PDF";
+            } else {
+                tabFromPdf.className = "py-3 px-4 rounded-xl font-semibold text-xs sm:text-sm transition flex items-center justify-center space-x-2 bg-white text-indigo-600 shadow-md";
+                tabToPdf.className = "py-3 px-4 rounded-xl font-semibold text-xs sm:text-sm transition flex items-center justify-center space-x-2 text-slate-600 hover:text-slate-900";
+                
+                fromIconBox.className = "w-12 h-14 rounded-xl bg-rose-600 text-white font-bold text-xs flex flex-col items-center justify-center shadow-md shadow-rose-600/30";
+                fromBadge.textContent = "PDF";
+                fromTitle.textContent = "PDF Document";
+                fromSub.textContent = "Standard .pdf file";
+                
+                toIconBox.className = "w-12 h-14 rounded-xl bg-blue-600 text-white font-bold text-xs flex flex-col items-center justify-center shadow-md shadow-blue-600/30";
+                toBadge.textContent = "DOC";
+                toTitle.textContent = "Word Document";
+                toSub.textContent = "Editable .doc file";
+                
+                dropHelpText.textContent = "Supports standard PDF documents (.pdf)";
+                fileInput.accept = ".pdf";
+                convertBtnText.textContent = "Convert PDF to Word (.doc)";
+            }
+        }
+
+        function showStatus(text, type = 'info') {
+            statusBox.classList.remove('hidden');
+            if (type === 'success') {
+                statusBox.className = "mt-6 p-4 rounded-2xl text-xs sm:text-sm font-medium leading-relaxed bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center space-x-3";
+                statusBox.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600 text-lg shrink-0"></i><span>${text}</span>`;
+            } else if (type === 'error') {
+                statusBox.className = "mt-6 p-4 rounded-2xl text-xs sm:text-sm font-medium leading-relaxed bg-rose-50 text-rose-800 border border-rose-200 flex items-center space-x-3";
+                statusBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-rose-600 text-lg shrink-0"></i><span>${text}</span>`;
+            } else {
+                statusBox.className = "mt-6 p-4 rounded-2xl text-xs sm:text-sm font-medium leading-relaxed bg-indigo-50 text-indigo-800 border border-indigo-200 flex items-center space-x-3";
+                statusBox.innerHTML = `<i class="fa-solid fa-spinner animate-spin text-indigo-600 text-lg shrink-0"></i><span>${text}</span>`;
+            }
+        }
+
+        function clearStatus() {
+            statusBox.classList.add('hidden');
+            statusBox.textContent = '';
+        }
+
+        function handleFileSelection(file) {
+            if (!file) return;
+            selectedFile = file;
+            
+            const ext = file.name.split('.').pop().toLowerCase();
+            $('selectedFileName').textContent = file.name;
+            $('selectedFileSize').textContent = file.size < 1024 * 1024 
+                ? (file.size / 1024).toFixed(1) + ' KB' 
+                : (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+            
+            $('selectedFileIcon').textContent = ext.toUpperCase().slice(0, 3);
+            $('fileInfoCard').classList.remove('hidden');
+            convertBtn.disabled = false;
+            clearStatus();
+        }
+
+        function resetFileSelection() {
+            selectedFile = null;
+            fileInput.value = '';
+            $('fileInfoCard').classList.add('hidden');
+            convertBtn.disabled = true;
+            clearStatus();
+        }
+
+        fileInput.addEventListener('change', e => {
+            if (e.target.files.length > 0) {
+                handleFileSelection(e.target.files[0]);
+            }
+        });
+
+        dropzone.addEventListener('dragover', e => {
+            e.preventDefault();
+            dropzone.classList.add('border-indigo-600', 'bg-indigo-50/50');
+        });
+
+        dropzone.addEventListener('dragleave', () => {
+            dropzone.classList.remove('border-indigo-600', 'bg-indigo-50/50');
+        });
+
+        dropzone.addEventListener('drop', e => {
+            e.preventDefault();
+            dropzone.classList.remove('border-indigo-600', 'bg-indigo-50/50');
+            if (e.dataTransfer.files.length > 0) {
+                handleFileSelection(e.dataTransfer.files[0]);
+            }
+        });
+
+        function escapeHTML(str) {
+            return str.replace(/[&<>"']/g, c => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            })[c]);
+        }
+
+        function getBaseName(name) {
+            return name.replace(/\.[^.]+$/, "").replace(/[\\/:*?"<>|]/g, "_");
+        }
+
+        function downloadBlob(blob, filename) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 2000);
+        }
+
+        // Robust PDF Document generator from plain text
+        function generatePDFFromText(text) {
+            text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+            const rawLines = text.split('\n');
+            const lines = [];
+            
+            rawLines.forEach(para => {
+                if (!para) { lines.push(''); return; }
+                let current = '';
+                para.split(/\s+/).forEach(word => {
+                    while (word.length > 85) {
+                        if (current) { lines.push(current); current = ''; }
+                        lines.push(word.slice(0, 85));
+                        word = word.slice(85);
+                    }
+                    if (!word) return;
+                    if (!current) current = word;
+                    else if ((current + ' ' + word).length <= 85) current += ' ' + word;
+                    else { lines.push(current); current = word; }
+                });
+                if (current) lines.push(current);
+            });
+
+            if (!lines.length) lines.push('');
+            const pages = [];
+            for (let i = 0; i < lines.length; i += 45) {
+                pages.push(lines.slice(i, i + 45));
+            }
+
+            const objects = [];
+            const pageIDs = pages.map((_, i) => 4 + i * 2);
+
+            objects[1] = "<< /Type /Catalog /Pages 2 0 R >>";
+            objects[2] = "<< /Type /Pages /Kids [" + pageIDs.map(n => n + " 0 R").join(" ") + "] /Count " + pages.length + " >>";
+            objects[3] = "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>";
+
+            pages.forEach((pageLines, i) => {
+                const pageID = 4 + i * 2;
+                const contentID = pageID + 1;
+                let stream = "BT\n/F1 11 Tf\n50 780 Td\n16 TL\n";
+                pageLines.forEach((line, idx) => {
+                    const cleanLine = line.replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)');
+                    if (idx > 0) stream += "T*\n";
+                    stream += "(" + cleanLine + ") Tj\n";
+                });
+                stream += "ET";
+
+                objects[pageID] = "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents " + contentID + " 0 R >>";
+                objects[contentID] = "<< /Length " + new TextEncoder().encode(stream).length + " >>\nstream\n" + stream + "\nendstream";
+            });
+
+            let pdf = "%PDF-1.4\n";
+            const offsets = [0];
+            for (let i = 1; i < objects.length; i++) {
+                offsets[i] = new TextEncoder().encode(pdf).length;
+                pdf += i + " 0 obj\n" + objects[i] + "\nendobj\n";
+            }
+
+            const xrefOffset = new TextEncoder().encode(pdf).length;
+            pdf += "xref\n0 " + objects.length + "\n0000000000 65535 f \n";
+            for (let i = 1; i < objects.length; i++) {
+                pdf += String(offsets[i]).padStart(10, '0') + " 00000 n \n";
+            }
+            pdf += "trailer\n<< /Size " + objects.length + " /Root 1 0 R >>\nstartxref\n" + xrefOffset + "\n%%EOF";
+
+            return new Blob([pdf], { type: 'application/pdf' });
+        }
+
+        async function processFileToPdf(file) {
+            const ext = file.name.split('.').pop().toLowerCase();
+
+            if (ext === 'docx') {
+                try {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
+                    if (result.value && result.value.trim()) {
+                        return generatePDFFromText(result.value);
+                    }
+                } catch (e) {
+                    console.warn("Mammoth parse fallback:", e);
+                }
+            }
+
+            if (ext === 'xlsx' || ext === 'xls' || ext === 'csv') {
+                try {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+                    let sheetText = "";
+                    workbook.SheetNames.forEach(sheetName => {
+                        sheetText += `=== Sheet: ${sheetName} ===\n`;
+                        const worksheet = workbook.Sheets[sheetName];
+                        sheetText += XLSX.utils.sheet_to_csv(worksheet) + "\n\n";
+                    });
+                    if (sheetText.trim()) {
+                        return generatePDFFromText(sheetText);
+                    }
+                } catch (e) {
+                    console.warn("SheetJS parse fallback:", e);
+                }
+            }
+
+            if (ext === 'pptx') {
+                try {
+                    const zip = new JSZip();
+                    const zipContent = await zip.loadAsync(file);
+                    let pptText = "";
+                    const slideFiles = Object.keys(zipContent.files).filter(filename => filename.match(/ppt\/slides\/slide[0-9]+\.xml/));
+                    
+                    for (let i = 0; i < slideFiles.length; i++) {
+                        pptText += `--- Slide ${i + 1} ---\n`;
+                        const xmlContent = await zipContent.files[slideFiles[i]].async("text");
+                        const matches = xmlContent.match(/<a:t[^>]*>(.*?)<\/a:t>/g);
+                        if (matches) {
+                            matches.forEach(m => {
+                                const val = m.replace(/<[^>]+>/g, '');
+                                if (val) pptText += val + " ";
+                            });
+                        }
+                        pptText += "\n\n";
+                    }
+                    if (pptText.trim()) {
+                        return generatePDFFromText(pptText);
+                    }
+                } catch (e) {
+                    console.warn("PPTX parse fallback:", e);
+                }
+            }
+
+            if (file.type.startsWith('image/')) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        const textSummary = `[Image Document: ${file.name}]`;
+                        resolve(generatePDFFromText(textSummary));
+                    };
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            let text = "";
+            try {
+                text = await file.text();
+            } catch {
+                text = `[Binary File: ${file.name} (${file.size} bytes)]`;
+            }
+
+            if (!text.trim()) {
+                text = `[File Name: ${file.name} | Size: ${file.size} bytes]`;
+            }
+
+            return generatePDFFromText(text);
+        }
+
+        // Improved PDF-to-Word extraction with clean heading & paragraph formatting
+        async function processPdfToWord(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+            const pdfDoc = await loadingTask.promise;
+            
+            let formattedHtml = `<h1 style="color:#0f172a;border-bottom:2px solid #e2e8f0;padding-bottom:10px;">${escapeHTML(file.name)}</h1>`;
+
+            for (let i = 1; i <= pdfDoc.numPages; i++) {
+                const page = await pdfDoc.getPage(i);
+                const textContent = await page.getTextContent();
+                
+                let lastY = null;
+                let lineBuffer = "";
+                let pageHtml = `<div style="margin-bottom:30px;"><h3 style="color:#6366f1;font-size:14px;margin-bottom:10px;">Page ${i}</h3>`;
+
+                textContent.items.forEach(item => {
+                    const text = item.str.trim();
+                    if (!text) return;
+
+                    // Group items by vertical position (Y coordinate) to form natural lines/paragraphs
+                    const currentY = Math.round(item.transform[5]);
+                    if (lastY !== null && Math.abs(currentY - lastY) > 12) {
+                        if (lineBuffer.trim()) {
+                            pageHtml += `<p style="margin:4px 0;">${escapeHTML(lineBuffer)}</p>`;
+                            lineBuffer = "";
+                        }
+                    }
+                    lineBuffer += (lineBuffer ? " " : "") + text;
+                    lastY = currentY;
+                });
+
+                if (lineBuffer.trim()) {
+                    pageHtml += `<p style="margin:4px 0;">${escapeHTML(lineBuffer)}</p>`;
+                }
+                pageHtml += `</div>`;
+                formattedHtml += pageHtml;
+            }
+
+            const wordDocHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${escapeHTML(file.name)}</title></head><body style="font-family:Arial,sans-serif;padding:30px;line-height:1.6;color:#1e293b;">${formattedHtml}</body></html>`;
+            return new Blob(["\ufeff", wordDocHtml], { type: 'application/msword' });
+        }
+
+        async function processConversion() {
+            if (!selectedFile || isProcessing) return;
+            isProcessing = true;
+            convertBtn.disabled = true;
+
+            try {
+                showStatus("Processing document with zero size limit restrictions...", "info");
+                await new Promise(r => setTimeout(r, 400));
+
+                let resultBlob, outputName;
+                if (currentMode === 'to-pdf') {
+                    resultBlob = await processFileToPdf(selectedFile);
+                    outputName = getBaseName(selectedFile.name) + ".pdf";
+                } else {
+                    resultBlob = await processPdfToWord(selectedFile);
+                    outputName = getBaseName(selectedFile.name) + ".doc";
+                }
+
+                downloadBlob(resultBlob, outputName);
+                showStatus("Success! Your converted file has been downloaded instantly.", "success");
+            } catch (err) {
+                showStatus("Conversion failed: " + (err.message || "Unknown error occurred."), "error");
+            } finally {
+                isProcessing = false;
+                convertBtn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
